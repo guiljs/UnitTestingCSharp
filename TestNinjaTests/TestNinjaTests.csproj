@@ -55,6 +55,7 @@
   <ItemGroup>
     <Compile Include="Fundamentals\DemeritPointsCalculatorTests.cs" />
     <Compile Include="Fundamentals\FizzBuzzTests.cs" />
+    <Compile Include="Fundamentals\StackTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
