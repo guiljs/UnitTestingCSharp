@@ -12,7 +12,7 @@ namespace TestNinja.Fundamentals.Tests
     public class StackTests
     {
         [Test()]
-        public void Push_NullObject_ReturnArgumentNullException()
+        public void Push_NullObject_ThrowArgumentNullException()
         {
             var stack = new Stack<int?>();
 
@@ -35,7 +35,27 @@ namespace TestNinja.Fundamentals.Tests
         }
 
         [Test()]
-        public void Pop_ListCountIsZero_ReturnInvalidOperationException()
+        public void Count_EmptyStack_ReturnZero()
+        {
+            var stack = new Stack<int?>();
+
+            Assert.That(stack.Count, Is.EqualTo(0));
+
+        }
+
+        [Test()]
+        public void Count_StackHasValue_ReturnCount()
+        {
+            var stack = new Stack<int?>();
+
+            stack.Push(1);
+
+            Assert.That(stack.Count, Is.EqualTo(1));
+
+        }
+
+        [Test()]
+        public void Pop_ListCountIsZero_ThrowInvalidOperationException()
         {
             var stack = new Stack<int?>();
 
@@ -58,7 +78,7 @@ namespace TestNinja.Fundamentals.Tests
         }
 
         [Test()]
-        public void Peek_ListCountIsZero_ReturnInvalidOperationException()
+        public void Peek_ListCountIsZero_ThrowInvalidOperationException()
         {
             var stack = new Stack<int?>();
 
@@ -73,11 +93,13 @@ namespace TestNinja.Fundamentals.Tests
         {
             var stack = new Stack<int?>();
             stack.Push(1);
+            stack.Push(2);
+            stack.Push(3);
 
             var result = stack.Peek();
 
-            Assert.That(result, Is.EqualTo(1));
-            Assert.That(stack.Count, Is.EqualTo(1));
+            Assert.That(result, Is.EqualTo(3));
+            Assert.That(stack.Count, Is.EqualTo(3));
         }
     }
 }
