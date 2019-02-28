@@ -5,13 +5,21 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace TestNinja.Mocking
+namespace TestNinja.Moq
 {
     public class VideoService
     {
+        private IVideoRepository _videoRepository;
+        private IFileReader _fileReader;
+
+        public VideoService(IVideoRepository videoRepository = null, IFileReader fileReader = null) //Poor man's dependency. Should use Ninject or another Dependy Injection Framework  -   :(
+        {
+            _videoRepository = videoRepository ?? new VideoRepository(); //<--Poor man's dependency. Should use Ninject or another Dependy Injection Framework  -   :(
+            _fileReader = fileReader ?? new FileReader();
+        }
         public string ReadVideoTitle()
         {
-            var str = File.ReadAllText("video.txt");
+            var str = _fileReader.Read("video.txt");
             var video = JsonConvert.DeserializeObject<Video>(str);
             if (video == null)
                 return "Error parsing the video.";
@@ -21,19 +29,14 @@ namespace TestNinja.Mocking
         public string GetUnprocessedVideosAsCsv()
         {
             var videoIds = new List<int>();
-            
-            using (var context = new VideoContext())
-            {
-                var videos = 
-                    (from video in context.Videos
-                    where !video.IsProcessed
-                    select video).ToList();
-                
-                foreach (var v in videos)
-                    videoIds.Add(v.Id);
 
-                return String.Join(",", videoIds);
-            }
+            var videos = _videoRepository.GetUnprocessedVideos();
+
+            foreach (var v in videos)
+                videoIds.Add(v.Id);
+
+            return String.Join(",", videoIds);
+
         }
     }
 
@@ -44,7 +47,7 @@ namespace TestNinja.Mocking
         public bool IsProcessed { get; set; }
     }
 
-    public class VideoContext : DbContext
+    public class VideoContext : DbContext, IVideoContext
     {
         public DbSet<Video> Videos { get; set; }
     }
