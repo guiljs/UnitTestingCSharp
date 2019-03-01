@@ -6,16 +6,14 @@ namespace TestNinja.Moq
 {
     public static class BookingHelper
     {
-        public static string OverlappingBookingsExist(Booking booking)
+        public static string OverlappingBookingsExist(Booking booking, IBookingRepository bookingRepository = null)
         {
+            bookingRepository = bookingRepository ?? new BookingRepository();
+
             if (booking.Status == "Cancelled")
                 return string.Empty;
 
-            var unitOfWork = new UnitOfWork();
-            var bookings =
-                unitOfWork.Query<Booking>()
-                    .Where(
-                        b => b.Id != booking.Id && b.Status != "Cancelled");
+            var bookings = bookingRepository.GetActiveBookings(booking.Id);
 
             var overlappingBooking =
                 bookings.FirstOrDefault(
@@ -29,7 +27,31 @@ namespace TestNinja.Moq
         }
     }
 
-    public class UnitOfWork
+    public class BookingRepository : IBookingRepository
+    {
+        private IUnitOfWork _unitOfWork;
+        public BookingRepository(IUnitOfWork unitOfWork = null)
+        {
+            _unitOfWork = unitOfWork ?? new UnitOfWork();
+        }
+        public IQueryable<Booking> GetActiveBookings(int? excludedBookingId = null)
+        {
+            // var unitOfWork = new UnitOfWork();
+            var bookings =
+                _unitOfWork.Query<Booking>()
+                    .Where(
+                        b => b.Status != "Cancelled");
+
+            if (excludedBookingId.HasValue)
+            {
+                bookings = bookings.Where(b => b.Id != excludedBookingId.Value);
+            }
+
+            return bookings;
+        }
+    }
+
+    public class UnitOfWork : IUnitOfWork
     {
         public IQueryable<T> Query<T>()
         {
