@@ -7,24 +7,30 @@ using TestNinja.Moq;
 
 namespace TestNinja.Mocking
 {
-    public static class HousekeeperHelper
+    public class HousekeeperHelper
     {
-        private static readonly UnitOfWork UnitOfWork = new UnitOfWork();
-
-        public static bool SendStatementEmails(DateTime statementDate, IUnitOfWork unitOfWork = null, IStatementManager statementManager = null, IEmailSender emailSender = null)
+        public HousekeeperHelper(IUnitOfWork unitOfWork = null, IStatementManager statementManager = null, IEmailSender emailSender = null)
         {
-            unitOfWork = unitOfWork ?? new UnitOfWork();
-            statementManager = statementManager ?? new StatementManager();
-            emailSender = emailSender ?? new EmailSender();
+            _unitOfWork = unitOfWork ?? new UnitOfWork();
+            _statementManager = statementManager ?? new StatementManager();
+            _emailSender = emailSender ?? new EmailSender();
+        }
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IStatementManager _statementManager;
+        private readonly IEmailSender _emailSender;
 
-            var housekeepers = unitOfWork.Query<Housekeeper>();
+        public bool SendStatementEmails(DateTime statementDate)
+        {
+
+
+            var housekeepers = _unitOfWork.Query<Housekeeper>();
 
             foreach (var housekeeper in housekeepers)
             {
                 if (housekeeper.Email == null)
                     continue;
 
-                var statementFilename = statementManager.SaveStatement(housekeeper.Oid, housekeeper.FullName, statementDate);
+                var statementFilename = _statementManager.SaveStatement(housekeeper.Oid, housekeeper.FullName, statementDate);
 
                 if (string.IsNullOrWhiteSpace(statementFilename))
                     continue;
@@ -34,7 +40,7 @@ namespace TestNinja.Mocking
 
                 try
                 {
-                    emailSender.EmailFile(emailAddress, emailBody, statementFilename,
+                    _emailSender.EmailFile(emailAddress, emailBody, statementFilename,
                          string.Format("Sandpiper Statement {0:yyyy-MM} {1}", statementDate, housekeeper.FullName));
                 }
                 catch (Exception e)
