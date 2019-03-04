@@ -14,7 +14,7 @@ namespace TestNinja.Moq
                 return string.Empty;
 
             var bookings = bookingRepository.GetActiveBookings(booking.Id);
-
+            //bool overlap = a.start < b.end && b.start < a.end;
             var overlappingBooking =
                 bookings.FirstOrDefault(
                     b =>
