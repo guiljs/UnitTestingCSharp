@@ -9,20 +9,20 @@ namespace TestNinja.Mocking
 {
     public class HousekeeperHelper
     {
-        public HousekeeperHelper(IUnitOfWork unitOfWork = null, IStatementManager statementManager = null, IEmailSender emailSender = null)
+        public HousekeeperHelper(IUnitOfWork unitOfWork = null, IStatementManager statementManager = null, IEmailSender emailSender = null, IXtraMessageBox xtraMessageBox = null)
         {
             _unitOfWork = unitOfWork ?? new UnitOfWork();
             _statementManager = statementManager ?? new StatementManager();
             _emailSender = emailSender ?? new EmailSender();
+            _xtraMessageBox = xtraMessageBox ?? new XtraMessageBox();
         }
         private readonly IUnitOfWork _unitOfWork;
         private readonly IStatementManager _statementManager;
         private readonly IEmailSender _emailSender;
+        private readonly IXtraMessageBox _xtraMessageBox;
 
-        public bool SendStatementEmails(DateTime statementDate)
+        public void SendStatementEmails(DateTime statementDate)
         {
-
-
             var housekeepers = _unitOfWork.Query<Housekeeper>();
 
             foreach (var housekeeper in housekeepers)
@@ -45,17 +45,11 @@ namespace TestNinja.Mocking
                 }
                 catch (Exception e)
                 {
-                    XtraMessageBox.Show(e.Message, string.Format("Email failure: {0}", emailAddress),
+                    _xtraMessageBox.Show(e.Message, string.Format("Email failure: {0}", emailAddress),
                         MessageBoxButtons.OK);
                 }
             }
-
-            return true;
         }
-
-
-
-
     }
 
     public enum MessageBoxButtons
@@ -63,9 +57,9 @@ namespace TestNinja.Mocking
         OK
     }
 
-    public class XtraMessageBox
+    public class XtraMessageBox : IXtraMessageBox
     {
-        public static void Show(string s, string housekeeperStatements, MessageBoxButtons ok)
+        public void Show(string s, string housekeeperStatements, MessageBoxButtons ok)
         {
         }
     }
