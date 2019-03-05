@@ -7,9 +7,9 @@ using TestNinja.Moq;
 
 namespace TestNinja.Mocking
 {
-    public class HousekeeperHelper
+    public class HouseKeeperService
     {
-        public HousekeeperHelper(IUnitOfWork unitOfWork = null, IStatementManager statementManager = null, IEmailSender emailSender = null, IXtraMessageBox xtraMessageBox = null)
+        public HouseKeeperService(IUnitOfWork unitOfWork = null, IStatementManager statementManager = null, IEmailSender emailSender = null, IXtraMessageBox xtraMessageBox = null)
         {
             _unitOfWork = unitOfWork ?? new UnitOfWork();
             _statementManager = statementManager ?? new StatementManager();
@@ -21,7 +21,7 @@ namespace TestNinja.Mocking
         private readonly IEmailSender _emailSender;
         private readonly IXtraMessageBox _xtraMessageBox;
 
-        public void SendStatementEmails(DateTime statementDate)
+        public bool SendStatementEmails(DateTime statementDate)
         {
             var housekeepers = _unitOfWork.Query<Housekeeper>();
 
@@ -49,6 +49,8 @@ namespace TestNinja.Mocking
                         MessageBoxButtons.OK);
                 }
             }
+
+            return true;
         }
     }
 

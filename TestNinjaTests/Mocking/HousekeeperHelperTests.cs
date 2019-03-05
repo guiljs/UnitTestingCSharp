@@ -37,7 +37,7 @@ namespace TestNinja.Mocking.Tests
             var mockEmailSender = new Mock<IEmailSender>();
             string subject = string.Format("Sandpiper Statement {0:yyyy-MM} {1}", new DateTime(), houseKeeper.FullName);
             mockEmailSender.Setup(m => m.EmailFile(houseKeeper.Email, houseKeeper.StatementEmailBody, FILENAME, subject)).Verifiable();
-            var housekeeperHelper = new HousekeeperHelper(mockUnitOfWork.Object, mockStatementManager.Object, mockEmailSender.Object);
+            var housekeeperHelper = new HouseKeeperService(mockUnitOfWork.Object, mockStatementManager.Object, mockEmailSender.Object);
 
             var result = housekeeperHelper.SendStatementEmails(new DateTime());
 

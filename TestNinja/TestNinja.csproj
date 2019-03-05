@@ -62,7 +62,7 @@
     <Compile Include="Mocking\EmailSender.cs" />
     <Compile Include="Mocking\EmployeeController.cs" />
     <Compile Include="Mocking\FileReader.cs" />
-    <Compile Include="Mocking\HousekeeperHelper.cs" />
+    <Compile Include="Mocking\HouseKeeperService.cs" />
     <Compile Include="Mocking\IBookRepository.cs" />
     <Compile Include="Mocking\IEmailSender.cs" />
     <Compile Include="Mocking\IEmployeeRepository.cs" />
