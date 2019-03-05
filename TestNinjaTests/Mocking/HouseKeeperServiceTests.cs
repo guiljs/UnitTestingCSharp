@@ -13,7 +13,7 @@ namespace TestNinja.Mocking.Tests
     [TestFixture()]
     public class HouseKeeperServiceTests
     {
-        private const string STATEMENT_FILENAME = "filename";
+        private string _statementFilename;
         private HouseKeeperService _service;
         private Mock<IStatementManager> _statementManager;
         private Mock<IEmailSender> _emailSender;
@@ -24,7 +24,7 @@ namespace TestNinja.Mocking.Tests
         [SetUp]
         public void Setup()
         {
-            //SETUP
+            //ARRANGE
             _housekeeper = new Housekeeper
             {
                 Email = "a",
@@ -39,7 +39,13 @@ namespace TestNinja.Mocking.Tests
                 _housekeeper
             }.AsQueryable());
 
+            _statementFilename = "filename";
+
             _statementManager = new Mock<IStatementManager>();
+            _statementManager
+                .Setup(sm => sm.SaveStatement(_housekeeper.Oid, _housekeeper.FullName, _statementDate))
+                .Returns(() => _statementFilename); //()=> Lazy evaluation 
+
             _emailSender = new Mock<IEmailSender>();
             _xtraMessageBox = new Mock<IXtraMessageBox>();
 
@@ -86,44 +92,63 @@ namespace TestNinja.Mocking.Tests
         [Test()]
         public void SendStatementEmails_WhenCalled_EmailTheStatement()
         {
-            _statementManager.Setup(sm => sm.SaveStatement(_housekeeper.Oid, _housekeeper.FullName, _statementDate)).Returns(STATEMENT_FILENAME);
             _service.SendStatementEmails(_statementDate);
-
-            _emailSender.Verify(em => em.EmailFile(_housekeeper.Email, _housekeeper.StatementEmailBody, STATEMENT_FILENAME, It.IsAny<string>()));
+            VerifyEmailIsSent();
         }
+
 
         [Test()]
         public void SendStatementEmails_StatementFilenameIsNull_ShouldNotEmailTheStatement()
         {
-            _statementManager.Setup(sm => sm.SaveStatement(_housekeeper.Oid, _housekeeper.FullName, _statementDate)).Returns(() => null);
+            _statementFilename = null;
             _service.SendStatementEmails(_statementDate);
 
-            _emailSender.Verify(em => em.EmailFile(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>()), Times.Never);
+            VerifyEmailIsNotSent();
         }
 
         [Test()]
         public void SendStatementEmails_StatementFilenameIsEmptyString_ShouldNotEmailTheStatement()
         {
-            _statementManager.Setup(sm => sm.SaveStatement(_housekeeper.Oid, _housekeeper.FullName, _statementDate)).Returns("");
+            _statementFilename = "";
             _service.SendStatementEmails(_statementDate);
 
-            _emailSender.Verify(em => em.EmailFile(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>()), Times.Never);
+            VerifyEmailIsNotSent();
         }
 
         [Test()]
         public void SendStatementEmails_StatementFilenameIsWhiteSpace_ShouldNotEmailTheStatement()
         {
-            _statementManager.Setup(sm => sm.SaveStatement(_housekeeper.Oid, _housekeeper.FullName, _statementDate)).Returns(" ");
+            _statementFilename = " ";
             _service.SendStatementEmails(_statementDate);
 
+            VerifyEmailIsNotSent();
+        }
+
+        [Test()]
+        public void SendStatementEmails_EmailSendingFails_DisplayAMessage()
+        {
+            _emailSender.Setup(es => es.EmailFile(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()
+                )).Throws<Exception>();
+            _service.SendStatementEmails(_statementDate);
+
+            VerifyMessageBoxIsDisplayed();
+        }
+
+        private void VerifyMessageBoxIsDisplayed()
+        {
+            _xtraMessageBox.Verify(mb => mb.Show(
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<MessageBoxButtons>()
+                            ));
+        }
+
+        private void VerifyEmailIsNotSent()
+        {
             _emailSender.Verify(em => em.EmailFile(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
@@ -131,5 +156,14 @@ namespace TestNinja.Mocking.Tests
                 It.IsAny<string>()), Times.Never);
         }
 
+        private void VerifyEmailIsSent()
+        {
+            _emailSender
+                .Verify(em => em.EmailFile(
+                _housekeeper.Email,
+                _housekeeper.StatementEmailBody,
+                _statementFilename,
+                It.IsAny<string>()));
+        }
     }
 }
